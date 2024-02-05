@@ -183,6 +183,15 @@ piesocket.subscribe("chat-room").then(ch => {
   });
 });
 
+// Load previous messages when the page loads
+window.addEventListener('load', function () {
+  previousMessages.forEach(msg => {
+    chatMessages.insertAdjacentHTML('beforeend', msg);
+  });
+
+  scrollToBottom();
+});
+
 function sendMessage() {
   if (!channel) {
     alert("Channel is not connected yet, wait a sec");
@@ -205,6 +214,7 @@ function sendMessage() {
 function scrollToBottom() {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
+
 
 </script>
 

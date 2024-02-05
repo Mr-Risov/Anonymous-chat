@@ -100,8 +100,37 @@ var chatMessages = document.getElementById('chatMessages');
 var chatForm = document.getElementById('chatForm');
 var chatMessageInput = document.getElementById('messageInput'); // Corrected ID
 
+// Function to set a cookie
+function setCookie(name, value, days) {
+  var expires = "";
+  if (days) {
+    var date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (value || "") + expires + "; path=/";
+}
+
+// Function to get a cookie value
+function getCookie(name) {
+  var nameEQ = name + "=";
+  var ca = document.cookie.split(';');
+  for (var i = 0; i < ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+  }
+  return null;
+}
+
 // Array to store previous chat messages
 var previousMessages = [];
+
+// Retrieve previous messages from cookies
+var storedMessages = getCookie('chatMessages');
+if (storedMessages) {
+  previousMessages = JSON.parse(storedMessages);
+}
 
 chatForm.addEventListener("submit", function (e) {
   e.preventDefault();
@@ -147,6 +176,9 @@ piesocket.subscribe("chat-room").then(ch => {
     // Store the message in the array for future users
     previousMessages.push(messageHTML);
 
+    // Save messages to cookies
+    setCookie('chatMessages', JSON.stringify(previousMessages), 365);
+
     scrollToBottom();
   });
 });
@@ -173,7 +205,10 @@ function sendMessage() {
 function scrollToBottom() {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
-                                      </script>
+
+</script>
+
+                                      
 
 
 

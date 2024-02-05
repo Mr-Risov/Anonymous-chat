@@ -96,71 +96,84 @@
 
 <script>
   var username = "user_" + (Math.floor(Math.random() * 1000));
-  var chatMessages = document.getElementById('chatMessages');
-  var chatForm = document.getElementById('chatForm');
-  var chatMessageInput = document.getElementById('messageInput'); // Corrected ID
+var chatMessages = document.getElementById('chatMessages');
+var chatForm = document.getElementById('chatForm');
+var chatMessageInput = document.getElementById('messageInput'); // Corrected ID
 
-  chatForm.addEventListener("submit", function (e) {
-    e.preventDefault();
-    sendMessage();
-  });
+// Array to store previous chat messages
+var previousMessages = [];
 
-  var piesocket = new PieSocket.default({
-    clusterId: "free.blr2",
-    apiKey: "s6Plc8z2Ua7yLbkvOjYIjd158YrahORIPeJOgKhv",
-    notifySelf: true,
-    presence: true,
-    userId: username
-  });
+chatForm.addEventListener("submit", function (e) {
+  e.preventDefault();
+  sendMessage();
+});
 
-  var channel;
-  piesocket.subscribe("chat-room").then(ch => {
-    channel = ch;
+var piesocket = new PieSocket.default({
+  clusterId: "free.blr2",
+  apiKey: "s6Plc8z2Ua7yLbkvOjYIjd158YrahORIPeJOgKhv",
+  notifySelf: true,
+  presence: true,
+  userId: username
+});
 
-    channel.listen("system:member_joined", function (data) {
-      if (data.member.user == username) {
-        data.member.user = "<b>You</b>";
-      }
+var channel;
 
-      chatMessages.insertAdjacentHTML('beforeend', `<div>${data.member.user} joined the chat</div>`);
-      scrollToBottom();
-    });
+piesocket.subscribe("chat-room").then(ch => {
+  channel = ch;
 
-    channel.listen("new_message", function (data, meta) {
-      if (data.sender == username) {
-        data.sender = "<b>You</b>";
-      }
-
-      chatMessages.insertAdjacentHTML('beforeend', `<div>${data.sender}: ${data.text}</div>`);
-      scrollToBottom();
-    });
-  });
-
-  function sendMessage() {
-    if (!channel) {
-      alert("Channel is not connected yet, wait a sec");
-      return;
+  channel.listen("system:member_joined", function (data) {
+    if (data.member.user == username) {
+      data.member.user = "<b>You</b>";
     }
 
-    var message = chatMessageInput.value;
+    chatMessages.insertAdjacentHTML('beforeend', `<div>${data.member.user} joined the chat</div>`);
 
-    if (message.trim() !== "") {
-      channel.publish("new_message", {
-        sender: username,
-        text: message
-      });
+    // Display previous messages when a user joins
+    previousMessages.forEach(msg => {
+      chatMessages.insertAdjacentHTML('beforeend', msg);
+    });
 
-      // Clear the input field after sending the message
-      chatMessageInput.value = "";
+    scrollToBottom();
+  });
+
+  channel.listen("new_message", function (data, meta) {
+    if (data.sender == username) {
+      data.sender = "<b>You</b>";
     }
+
+    var messageHTML = `<div>${data.sender}: ${data.text}</div>`;
+    chatMessages.insertAdjacentHTML('beforeend', messageHTML);
+
+    // Store the message in the array for future users
+    previousMessages.push(messageHTML);
+
+    scrollToBottom();
+  });
+});
+
+function sendMessage() {
+  if (!channel) {
+    alert("Channel is not connected yet, wait a sec");
+    return;
   }
 
-  function scrollToBottom() {
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  }
-</script>
+  var message = chatMessageInput.value;
 
-<!-- ... (rest of the code) -->
+  if (message.trim() !== "") {
+    channel.publish("new_message", {
+      sender: username,
+      text: message
+    });
+
+    // Clear the input field after sending the message
+    chatMessageInput.value = "";
+  }
+}
+
+function scrollToBottom() {
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+                                      </script>
 
 
 
